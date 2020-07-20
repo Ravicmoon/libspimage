@@ -53,17 +53,38 @@ find_package(HDF5 REQUIRED)
 find_package(GSL)
 
 if(PYTHON_WRAPPERS)
-  find_package(PythonInterp)
-  find_package(PythonLibs)
+  if(${CMAKE_VERSION} VERSION_LESS "3.12.4")
+    find_package(PythonInterp)
+    find_package(PythonLibs)
+    if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
+      set(PYTHON_FOUND TRUE)
+    else()
+      set(PYTHON_FOUND FALSE)
+    endif()
+  else()
+    find_package(Python3)
+    if(Python3_FOUND)
+      set(PYTHON_FOUND TRUE)
+      set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+    else()
+      set(PYTHON_FOUND FALSE)
+    endif()
+  endif()
   find_package(Numpy)
   find_package(SWIG)
-  if(PYTHONLIBS_FOUND AND SWIG_FOUND AND PYTHONINTERP_FOUND AND PYTHON_NUMPY_FOUND)
+  if(PYTHON_FOUND AND PYTHON_NUMPY_FOUND AND SWIG_FOUND)
     # Taken from plplot. Many thanks!
     # N.B. This is a nice way to obtain all sorts of python information
     # using distutils.
     execute_process(
 	 COMMAND
-  	 ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_lib())"
+  	 ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_inc())"
+	 OUTPUT_VARIABLE PYTHON_INCLUDE_PATH
+  	 OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+	 COMMAND
+	 ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_lib())"
   	 OUTPUT_VARIABLE _PYTHON_INSTDIR
   	 OUTPUT_STRIP_TRAILING_WHITESPACE
     )

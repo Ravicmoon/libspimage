@@ -4,35 +4,34 @@
 #  PYTHON_NUMPY_INCLUDE_DIR, where to find numpy/arrayobject.h, etc.
 #  PYTHON_NUMPY_FOUND, If false, do not try to use numpy headers.
 
-if (PYTHON_NUMPY_INCLUDE_DIR)
+if(PYTHON_NUMPY_INCLUDE_DIR)
   # in cache already
   set (PYTHON_NUMPY_FIND_QUIETLY TRUE)
-endif (PYTHON_NUMPY_INCLUDE_DIR)
+endif()
 
-INCLUDE(FindPythonInterp)
+if(PYTHON_FOUND)
+  execute_process(
+    COMMAND
+    ${PYTHON_EXECUTABLE} -c "import numpy as np; print(np.get_include())"
+    OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-IF(PYTHON_EXECUTABLE)
-    EXEC_PROGRAM ("${PYTHON_EXECUTABLE}"
-      ARGS "-c \"import sys; import numpy; sys.stdout.write(numpy.get_include())\""
-      OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_DIR
-      RETURN_VALUE PYTHON_NUMPY_NOT_FOUND)
+  if(PYTHON_NUMPY_INCLUDE_DIR)
+    set(PYTHON_NUMPY_FOUND TRUE)
+    set(PYTHON_NUMPY_INCLUDE_DIR ${PYTHON_NUMPY_INCLUDE_DIR} CACHE PATH "Numpy include path")
+  else()
+    set(PYTHON_NUMPY_FOUND FALSE)
+  endif()
+endif()
 
-    if (PYTHON_NUMPY_INCLUDE_DIR)
-      set (PYTHON_NUMPY_FOUND TRUE)
-      set (PYTHON_NUMPY_INCLUDE_DIR ${PYTHON_NUMPY_INCLUDE_DIR} CACHE STRING "Numpy include path")
-    else (PYTHON_NUMPY_INCLUDE_DIR)
-      set(PYTHON_NUMPY_FOUND FALSE)
-    endif (PYTHON_NUMPY_INCLUDE_DIR)
-ENDIF(PYTHON_EXECUTABLE)
-
-if (PYTHON_NUMPY_FOUND)
-  if (NOT PYTHON_NUMPY_FIND_QUIETLY)
+if(PYTHON_NUMPY_FOUND)
+  if(NOT PYTHON_NUMPY_FIND_QUIETLY)
     message (STATUS "Numpy headers found")
-  endif (NOT PYTHON_NUMPY_FIND_QUIETLY)
-else (PYTHON_NUMPY_FOUND)
-  if (PYTHON_NUMPY_FIND_REQUIRED)
+  endif()
+else()
+  if(PYTHON_NUMPY_FIND_REQUIRED)
     message (FATAL_ERROR "Numpy headers missing")
-  endif (PYTHON_NUMPY_FIND_REQUIRED)
-endif (PYTHON_NUMPY_FOUND)
+  endif()
+endif()
 
 MARK_AS_ADVANCED (PYTHON_NUMPY_INCLUDE_DIR)
